@@ -580,11 +580,8 @@ Contributions are welcome! Please follow these steps:
 
 Please follow the existing code conventions and ensure all TypeScript types are correctly defined.
 
----
 
-## 📄 License
 
-This project is licensed under the **ISC License**.
 
 ---
 
