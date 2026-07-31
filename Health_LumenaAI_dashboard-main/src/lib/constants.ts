@@ -1,0 +1,81 @@
+export const SIDEBAR_ITEMS = [
+  // ===== ADMIN  =====
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    href: "/dashboard/admin",
+    icon: "LayoutDashboard",
+    roles: ["ADMIN"],
+  },
+  {
+    id: "users",
+    label: "Users",
+    href: "/dashboard/admin/users",
+    icon: "Users",
+    roles: ["ADMIN"],
+  },
+  {
+    id: "public-contact",
+    label: "Public Contact",
+    href: "/dashboard/admin/public-contact",
+    icon: "MessageCircle",
+    roles: ["ADMIN"],
+  },
+  {
+    id: "message",
+    label: "All Contact Support",
+    href: "/dashboard/admin/message",
+    icon: "MessageCircle",
+    roles: ["ADMIN"],
+  },
+  {
+    id: "care-plan",
+    label: "Care Plan",
+    href: "/dashboard/admin/care-plan",
+    icon: "LuHandHeart",
+    roles: ["ADMIN"],
+  },
+  {
+    id: "shifts",
+    label: "Shifts",
+    href: "/dashboard/admin/shifts",
+    icon: "Calendar",
+    roles: ["ADMIN"],
+  },
+  {
+    id: "shifts-notes",
+    label: "Shifts Notes",
+    href: "/dashboard/admin/shifts-note",
+    icon: "NotebookPen",
+    roles: ["ADMIN"],
+  },
+  //   {
+  //     id: "payments",
+  //     label: "Payments",
+  //     href: "/dashboard/admin/payments",
+  //     icon: "CircleDollarSign",
+  //     roles: ["ADMIN"],
+  //   },
+  {
+    id: "verification",
+    label: "Verification",
+    href: "/dashboard/admin/verification",
+    icon: "HiOutlineCheckBadge",
+    roles: ["ADMIN"],
+  },
+
+  //   {
+  //     id: "analytics",
+  //     label: "Support",
+  //     href: "/dashboard/admin/analytics",
+  //     icon: "AlertCircle",
+  //     roles: ["ADMIN"],
+  //   },
+  {
+    id: "settings",
+    label: "Settings",
+    href: "/dashboard/admin/settings",
+    icon: "Settings",
+    roles: ["ADMIN"],
+  },
+];

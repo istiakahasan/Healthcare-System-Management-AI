@@ -1,0 +1,701 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Address {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  city      String?
+  country   String
+  latitude  Float // Geographical coordinates for location-based services
+  longitude Float // Geographical coordinates for location-based services
+  postcode  String?
+  state     String?
+  // relations
+  userId    String?  @db.ObjectId
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  patientId String?  @db.ObjectId
+  patient   Patient? @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Booking {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  customerId      String        @db.ObjectId
+  customer        User          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  paymentIntentId String? // External payment service identifier
+  paymentStatus   PaymentStatus @default(PENDING)
+  serviceId       String        @unique
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model CarePlan {
+  id              String            @id @default(auto()) @map("_id") @db.ObjectId
+  carePlanShift   ShiftType[]       @default([])
+  carePlanType    CarePlanType      @default(WEEKLY)
+  customerId      String            @db.ObjectId
+  customer        Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  dayOfWeek       DayOfWeek[]       @default([])
+  description     String?
+  durationOfWeek  Int               @default(1)
+  patientId       String            @db.ObjectId
+  patient         Patient           @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  serviceCategory ServiceCategory[] @default([])
+  startDate       DateTime
+  status          CarePlanStatus    @default(ACTIVE)
+  supportActivity SupportActivity[] @default([])
+  isFullyStaffed  Boolean           @default(false)
+  totalShifts     Int
+  title           String
+  // categories and activities
+  careGoals       String[]
+  shiftRequests   ShiftRequest[]
+  shifts          Shift[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([patientId, status])
+}
+
+model ContactSupport {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  category  String // Type of support request (technical, billing, care-related)
+  image     String? // Optional screenshot or supporting image
+  message   String
+  subject   String
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Customer {
+  id           String         @id @default(auto()) @map("_id") @db.ObjectId
+  bio          String?
+  haveFunding  Boolean        @default(false) // Whether customer has NDIS or other funding
+  isAdult      Boolean        @default(true)
+  lastLogin    DateTime? // Track portal usage
+  portalAccess Boolean        @default(false) // Controls access to client/family portal
+  supportFor   SupportFor     @default(FAMILY_MEMBER) // Who the support is for
+  userId       String         @unique @db.ObjectId
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  patients     Patient[]
+  carePlans    CarePlan[]
+  selfPatient  Patient[]      @relation("CustomerIsPatient")
+  NDISClaim    NDISClaim[]
+  ShiftRequest ShiftRequest[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  shiftNotes   ShiftNote[]
+
+  @@index([userId, portalAccess]) // Optimize portal access queries
+}
+
+model ChatRoom {
+  id                  String                @id @default(auto()) @map("_id") @db.ObjectId
+  roomId              String                @unique
+  name                String?
+  description         String?
+  createdBy           String                @db.ObjectId
+  isActive            Boolean               @default(true)
+  lastActivity        DateTime              @default(now())
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  // relations
+  creator             User                  @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  ChatRoomParticipant ChatRoomParticipant[]
+  Chat                Chat[]
+
+  @@index([createdBy])
+}
+
+model ChatRoomParticipant {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  roomId     String    @db.ObjectId
+  userId     String    @db.ObjectId
+  role       UserRole
+  joinedAt   DateTime  @default(now())
+  lastSeenAt DateTime?
+  isActive   Boolean   @default(true)
+
+  // Relations
+  room ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId])
+  @@index([userId])
+  @@index([roomId])
+}
+
+model Chat {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  roomId    String    @db.ObjectId
+  senderId  String    @db.ObjectId
+  message   String
+  isRead    Boolean   @default(false)
+  isEdited  Boolean   @default(false)
+  editedAt  DateTime?
+  replyToId String?   @db.ObjectId
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  // Relations
+  room      ChatRoom  @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender    User      @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  replyTo   Chat?     @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies   Chat[]    @relation("MessageReplies")
+
+  @@index([roomId])
+  @@index([senderId])
+  @@index([createdAt])
+}
+
+model Contact {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  email     String
+  subject   String
+  message   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("contacts")
+}
+
+model Document {
+  id        String           @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  category  DocumentCategory
+  docUrl    String // Storage location URL
+  patientId String?          @db.ObjectId
+  patient   Patient?         @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  userId    String?          @db.ObjectId
+  user      User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model NDISClaim {
+  id               String      @id @default(auto()) @map("_id") @db.ObjectId
+  claimPeriod      Json // { start: Date, end: Date } - Flexible period structure
+  customerId       String      @db.ObjectId
+  customer         Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  errors           String[] // Validation errors preventing submission
+  isValid          Boolean     @default(false) // Overall validation status
+  patientId        String      @db.ObjectId
+  patient          Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  services         Json // Array of services claimed - Complex service data structure
+  staffReviewerId  String?     @db.ObjectId
+  staffReviewer    Staff?      @relation(fields: [staffReviewerId], references: [id])
+  status           ClaimStatus @default(DRAFT)
+  submittedAt      DateTime?
+  totalAmount      Float
+  validatedAt      DateTime? // When automated validation was performed
+  validationReport String? // Detailed validation results for review
+  warnings         String[] // Non-blocking validation warnings
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@index([customerId, status]) // Efficient claim status tracking
+  @@index([submittedAt]) // For reporting and analytics
+}
+
+model Notification {
+  id          String               @id @default(auto()) @map("_id") @db.ObjectId
+  category    NotificationCategory // Classification for filtering
+  goTo        String? // Deep link or navigation path
+  isRead      Boolean              @default(false)
+  description String
+  priority    NotificationPriority @default(MEDIUM) // Urgency level
+  receiverId  String               @db.ObjectId
+  title       String
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+}
+
+model OTP {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  otpCode      String
+  otpExpiresAt DateTime // Security timeout for OTP validation
+  userId       String   @unique @db.ObjectId
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userId, otpCode]) // Ensure unique active OTPs per user
+  @@index([otpExpiresAt]) // For cleanup of expired OTPs
+}
+
+model Patient {
+  id             String      @id @default(auto()) @map("_id") @db.ObjectId
+  age            String // String to handle various age formats (e.g., "45", "2 years")
+  customerId     String?     @db.ObjectId
+  customer       Customer?   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  firstName      String
+  gender         GenderEnum
+  lastName       String
+  notes          String?
+  riskFactors    String[] // Factors affecting care planning and risk assessment
+  selfCustomerId String?     @db.ObjectId
+  selfCustomer   Customer?   @relation("CustomerIsPatient", fields: [selfCustomerId], references: [id], onDelete: Cascade)
+  carePlans      CarePlan[]
+  documents      Document[]
+  NDISClaim      NDISClaim[]
+  address        Address[]
+  Shift          Shift[]
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  shiftNotes     ShiftNote[]
+
+  @@index([customerId, lastName]) // Quick patient lookup by customer
+}
+
+model Qualification {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  fileURL   String
+  staffId   String   @unique @db.ObjectId
+  staff     Staff    @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Review {
+  id        String          @id @default(auto()) @map("_id") @db.ObjectId
+  careType  ServiceCategory
+  comment   String
+  rating    Int
+  staffId   String?         @db.ObjectId
+  staff     Staff?          @relation("StaffReviews", fields: [staffId], references: [id], onDelete: Cascade)
+  userId    String?         @db.ObjectId
+  user      User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@index([staffId, createdAt])
+}
+
+// model Shift {
+//   id            String      @id @default(auto()) @map("_id") @db.ObjectId
+//   carePlanId    String      @db.ObjectId
+//   carePlan      CarePlan    @relation(fields: [carePlanId], references: [id], onDelete: Cascade)
+//   patientId     String      @db.ObjectId
+//   patient       Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+//   staffId       String      @db.ObjectId
+//   staff         Staff       @relation(fields: [staffId], references: [id], onDelete: Cascade)
+//   shiftType     ShiftType
+//   isNotified    Boolean     @default(false)
+//   startDateTime DateTime
+//   endDateTime   DateTime
+//   status        ShiftStatus @default(SCHEDULED)
+//   createdAt     DateTime    @default(now())
+//   updatedAt     DateTime    @updatedAt
+// }
+
+model Shift {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  carePlanId    String      @db.ObjectId
+  carePlan      CarePlan    @relation(fields: [carePlanId], references: [id], onDelete: Cascade)
+  patientId     String      @db.ObjectId
+  patient       Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  staffId       String?     @db.ObjectId // Add ? to make it optional
+  staff         Staff?      @relation(fields: [staffId], references: [id], onDelete: Cascade) // Add ? here too
+  shiftType     ShiftType
+  isNotified    Boolean     @default(false)
+  startDateTime DateTime
+  endDateTime   DateTime
+  status        ShiftStatus @default(SCHEDULED)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model ShiftRequest {
+  id                 String             @id @default(auto()) @map("_id") @db.ObjectId
+  carePlanId         String             @db.ObjectId
+  carePlan           CarePlan           @relation(fields: [carePlanId], references: [id], onDelete: Cascade)
+  requestedBy        String             @db.ObjectId
+  requester          Customer           @relation(fields: [requestedBy], references: [id], onDelete: Cascade)
+  shiftRequestStatus ShiftRequestStatus @default(PENDING)
+  declineReason      String?
+  staffId            String             @db.ObjectId
+  staff              Staff              @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+}
+
+model ShiftNote {
+  id             String          @id @default(auto()) @map("_id") @db.ObjectId
+  title          String // Flexible structure for various activity types and details
+  incident       String
+  concern        String? // Any issues or concerns during shift
+  rawNotes       String
+  aiSummary      String?
+  aiImageSummary String?
+  image          String?
+  adminNote      String?
+  NDISVerified   Boolean         @default(false)
+  status         ShiftNoteStatus @default(PENDING)
+
+  staffId String @db.ObjectId
+  staff   User   @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  patientId  String   @db.ObjectId
+  patient    Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  customerId String   @db.ObjectId
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  // staff     Staff    @relation(fields: [staffId], references: [id])
+}
+
+model Staff {
+  id                  String              @id @default(auto()) @map("_id") @db.ObjectId
+  age                 Int
+  availabilityHours   String // General availability description
+  bio                 String?
+  certifications      String[]
+  dayOfWeek           DayOfWeek[]         @default([]) // Specific available days
+  endTime             String?
+  experienceYears     Int?
+  hourlyRate          String
+  languages           LanguageEnum[]      @default([])
+  serviceCategory     ServiceCategory[]   @default([])
+  shiftType           ShiftType[]         @default([])
+  skills              SupportActivity[]   @default([])
+  staffStatus         StaffStatus         @default(INACTIVE)
+  serviceAvailability ServiceAvailability @default(IMMEDIATE)
+  startTime           String?
+  totalWorkTime       String? //in hrs
+  travelDistance      TravelDistance      @default(WITHIN_20_KM)
+  userId              String              @unique @db.ObjectId
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // reviews             Review[]
+  reviews             Review[]            @relation("StaffReviews")
+  NDISClaim           NDISClaim[]
+  qualification       Qualification?
+  Shift               Shift[]
+  ShiftRequest        ShiftRequest[]
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  // shiftNotes          ShiftNote[]
+
+}
+
+model User {
+  id                  String                @id @default(auto()) @map("_id") @db.ObjectId
+  about               String?
+  canResetPassword    Boolean               @default(false) // Password reset permissions
+  email               String                @unique
+  fcmToken            String? // Firebase Cloud Messaging for push notifications
+  firstName           String
+  gender              GenderEnum
+  isDeleted           Boolean               @default(false) // Soft delete flag
+  isResetPassword     Boolean               @default(false) // Temporary reset state
+  isVerified          Boolean               @default(false) // Email/phone verification
+  isBlocked           Boolean               @default(false) // Account block status
+  lastName            String
+  password            String?
+  phoneNumber         String?
+  profileImage        String                @default("")
+  role                UserRole              @default(CUSTOMER)
+  status              UserStatus            @default(ACTIVE)
+  portalSettings      Json? // Flexible user preferences for portal customization
+  bookings            Booking[]
+  contactSupports     ContactSupport[]
+  customer            Customer?
+  OTP                 OTP?
+  reviews             Review[]
+  staff               Staff?
+  documents           Document[]
+  address             Address[]
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  ChatRoom            ChatRoom[]
+  ChatRoomParticipant ChatRoomParticipant[]
+  Chat                Chat[]
+  shiftNotes          ShiftNote[]
+
+  @@index([email, status]) // User lookup and management
+  @@index([role, isDeleted]) // Administrative queries
+}
+
+// ENUM DEFINITIONS (Alphabetical Order)
+
+enum CareNeedStatus {
+  PREDICTED // AI-identified but not confirmed
+  CONFIRMED // Validated by care team
+  SCHEDULED // Care scheduled
+  IN_PROGRESS // Active care
+  COMPLETED // Care delivered
+  CANCELLED // No longer needed
+}
+
+enum CareNeedType {
+  PERSONAL_CARE
+  MEDICAL
+  BEHAVIORAL
+  SOCIAL
+  THERAPY
+  NUTRITION
+  MOBILITY
+}
+
+enum CarePlanStatus {
+  ACTIVE
+  COMPLETED
+  INACTIVE
+}
+
+enum ClaimStatus {
+  DRAFT
+  SUBMITTED
+  VALIDATED
+  REJECTED
+  APPROVED
+  PAID
+}
+
+enum Currency {
+  EUR
+  GBP
+  LYD
+  USD
+}
+
+enum DayOfWeek {
+  FRIDAY
+  MONDAY
+  SATURDAY
+  SUNDAY
+  THURSDAY
+  TUESDAY
+  WEDNESDAY
+}
+
+// enum DocumentCategory {
+//   MEDICAL_RECORD
+//   INCIDENT_REPORT
+//   PERSONAL_RECORD
+//   OTHER
+// }
+
+enum DocumentCategory {
+  MEDICAL_RECORDS
+  CARE_PLANS
+  ADMINISTRATIVE
+  LEGAL
+  DAILY_LOGS
+  PERSONAL
+  INCIDENT_REPORTS
+  NDIS_CLAIMS
+}
+
+enum Gender {
+  FEMALE
+  MALE
+  OTHER
+}
+
+enum GenderEnum {
+  FEMALE
+  MALE
+  OTHER
+}
+
+enum IncidentStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  ESCALATED
+}
+
+enum IncidentType {
+  FALL
+  MEDICATION_ERROR
+  BEHAVIORAL
+  MEDICAL
+  SAFETY
+  OTHER
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  SYSTEM
+}
+
+enum NotificationCategory {
+  SHIFT_REMINDER
+  INCIDENT_ALERT
+  CLAIM_STATUS
+  MESSAGE
+  SYSTEM
+  CARE_ALERT
+}
+
+enum NotificationPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum PaymentStatus {
+  FAILED
+  PAID
+  PENDING
+  REFUNDED
+}
+
+enum PriorityLevel {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum RosterStatus {
+  SCHEDULED
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  REPLACED
+}
+
+enum ServiceAvailability {
+  WITHIN_WEEK
+  IMMEDIATE
+  FLEXIBLE
+  TWO_WEEKS
+}
+
+enum ServiceCategory {
+  AGED_CARE
+  DISABILITES_CARE
+}
+
+enum SeverityLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ShiftStatus {
+  SCHEDULED
+  IN_PROGRESS
+  CANCELLED
+  COMPLETED
+}
+
+enum ShiftNoteStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum StaffStatus {
+  ACTIVE
+  BLOCKED
+  REJECTED
+  INACTIVE
+}
+
+enum SupportFor {
+  COORDINATOR
+  FAMILY_MEMBER
+  ME
+}
+
+enum UserRole {
+  ADMIN
+  CUSTOMER
+  STAFF
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+  DELETED
+}
+
+enum CarePlanLocation {
+  CLIENTS_HOME
+  SUPPORTED_INDEPENDENT_LIVING
+}
+
+enum CarePlanType {
+  WEEKLY
+  ONE_OFF
+}
+
+enum SupportActivity {
+  COMMUNITY_ACCESS
+  DAILY_LIVING_SKILLS
+  EMPLOYMENT_SUPPORT
+  EXERCISE
+  HELP_AROUND_THE_HOME
+  LEARNING_SUPPORT
+  MANUAL_HANDLING
+  MEAL_PREPARATION
+  MEALTIME_MANAGEMENT
+  PERSONAL_CARE
+  SOCIAL_SUPPORT
+  SPECIALIZED_OR_COMPLEX_SUPPORT
+  THERAPY_ASSISTANCE
+  TRANSPORT
+  OTHER
+}
+
+enum ShiftType {
+  MORNING
+  EVENING
+  NIGHT
+}
+
+enum ShiftRequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum LanguageEnum {
+  ENGLISH
+  MANDARIN
+  CANTONESE
+  VIETNAMESE
+  FILIPINO_TAGALOG
+  HINDI
+  PUNJABI
+  TAMIL
+  NEPALI
+  ARABIC
+  GREEK
+  ITALIAN
+  SPANISH
+  FRENCH
+  TURKISH
+  CROATIAN
+  SERBIAN
+  PERSIAN_FARSI
+  SWAHILI
+  AMHARIC
+  SOMALI
+  TONGAN
+  SAMOAN
+  MAORI
+}
+
+enum TravelDistance {
+  WITHIN_5_KM
+  WITHIN_10_KM
+  WITHIN_20_KM
+  WITHIN_30_KM
+  NO_LIMIT
+}

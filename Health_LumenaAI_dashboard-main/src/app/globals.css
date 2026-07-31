@@ -1,0 +1,317 @@
+/* === IMPORTS === */
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* === THEME SETUP === */
+@custom-variant dark (&:is(.dark *));
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  overflow-y: hidden;
+}
+
+/* === THEME CONFIGURATION === */
+/* 
+ * Inline theme definition for Tailwind CSS v4
+ * This maps CSS custom properties to Tailwind color tokens
+ * All shadcn/ui components use these color mappings
+ */
+@theme inline {
+  /* === TYPOGRAPHY === */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --color-primary: var(--primary);
+
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primaryDark);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-destructive-soft: var(--destructiveSoft);
+
+  /* === CORE COLORS === */
+  --color-background: var(--background); /* Main background color */
+  --color-foreground: var(--foreground); /* Main text color */
+  --color-card: var(--card); /* Card background */
+  --color-card-foreground: var(--card-foreground); /* Card text */
+  --color-popover: var(--popover); /* Popover background */
+  --color-popover-foreground: var(--popover-foreground); /* Popover text */
+
+  /* === SEMANTIC COLORS === */
+  --color-primary: var(--primary); /* Primary brand color */
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary); /* Secondary color */
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted); /* Muted/subtle background */
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent); /* Accent color */
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive); /* Error/danger color */
+
+  /* === INTERFACE ELEMENTS === */
+  --color-border: var(--border); /* Default border color */
+  --color-input: var(--input); /* Input field backgrounds */
+  --color-ring: var(--ring); /* Focus ring color */
+
+  /* === CHART COLORS === */
+  /* Predefined colors for data visualization */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* === SIDEBAR COLORS === */
+  /* Specific colors for sidebar components */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* === BORDER RADIUS SCALE === */
+  /* Consistent border radius across components */
+  --radius-sm: calc(var(--radius) - 4px); /* Small radius */
+  --radius-md: calc(var(--radius) - 2px); /* Medium radius */
+  --radius-lg: var(--radius); /* Large radius (default) */
+  --radius-xl: calc(var(--radius) + 4px); /* Extra large radius */
+}
+
+/* === LIGHT MODE COLOR PALETTE === */
+/* 
+ * Root color definitions for light mode
+ * Uses OKLCH color space for better color consistency and accessibility
+ * OKLCH format: oklch(lightness chroma hue)
+ */
+:root {
+  --radius: 0.625rem;
+
+  /* === BASE COLORS === */
+  --background: oklch(100% 0.00011 271.152); /* White */
+  --foreground: oklch(21.779% 0.00002 271.152); /* Charcoal */
+  --black: oklch(0% 0 0); /* Black */
+
+  /* === CARD === */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+
+  /* === POPOVER === */
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+
+  /* === PRIMARY (Gold) === */
+  --primary: rgb(232, 201, 144); /* Gold (RGB 232, 201, 144) */
+  --primaryDark: rgb(212, 181, 124); /* Gold Dark (RGB 212, 181, 124) */
+  --primary-foreground: oklch(0.145 0 0); /* Charcoal text */
+
+  /* === SECONDARY (Champagne Light) === */
+  --secondary: oklch(95.136% 0.0256 84.572); /* Champagne */
+  --secondary-foreground: oklch(0.145 0 0);
+
+  /* === MUTED === */
+  --muted: oklch(0.95 0.03 94);
+  --muted-foreground: oklch(0.4 0 0);
+
+  /* === ACCENT (Champagne) === */
+  --accent: oklch(0.95 0.03 94);
+  --accent-foreground: oklch(0.145 0 0);
+
+  /* === STATUS === */
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructiveSoft: oklch(54.187% 0.2202 28.176);
+
+  /* === UI ELEMENTS === */
+  --border: oklch(0.92 0 0);
+  --input: oklch(0.92 0 0);
+  --ring: oklch(0.708 0 0);
+
+  /* === CHART COLORS (brand-aligned) === */
+  --chart-1: rgb(232, 201, 144); /* Gold */
+  --chart-2: oklch(0.4 0 0); /* Charcoal */
+  --chart-3: oklch(0.95 0.03 94); /* Champagne */
+  --chart-4: oklch(1 0 0); /* White */
+  --chart-5: oklch(0 0 0); /* Black */
+
+  /* === SIDEBAR === */
+  --sidebar: oklch(0.95 0.03 94); /* Champagne */
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: rgb(232, 201, 144); /* Gold */
+  --sidebar-primary-foreground: oklch(0.145 0 0);
+  --sidebar-accent: oklch(1 0 0);
+  --sidebar-accent-foreground: oklch(0.145 0 0);
+  --sidebar-border: oklch(0.92 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+/* === DARK MODE COLOR PALETTE === */
+/* 
+ * Dark mode color overrides
+ * Applied when .dark class is present on html or body element
+ * Colors are inverted and adjusted for better dark theme readability
+ */
+.dark {
+  /* === BASE COLORS === */
+  --background: oklch(0.145 0 0); /* Very dark background */
+  --foreground: oklch(0.985 0 0); /* Very light text */
+
+  /* === CARD COLORS === */
+  --card: oklch(0.205 0 0); /* Dark gray card background */
+  --card-foreground: oklch(0.985 0 0); /* Light text on cards */
+
+  /* === POPOVER COLORS === */
+  --popover: oklch(0.205 0 0); /* Dark popover background */
+  --popover-foreground: oklch(0.985 0 0); /* Light text in popovers */
+
+  /* === PRIMARY COLORS === */
+  --primary: oklch(0.922 0 0); /* Light primary color */
+  --primary-foreground: oklch(0.205 0 0); /* Dark text on primary */
+
+  /* === SECONDARY COLORS === */
+  --secondary: oklch(0.269 0 0); /* Medium dark gray */
+  --secondary-foreground: oklch(0.985 0 0); /* Light text on secondary */
+
+  /* === MUTED COLORS === */
+  --muted: oklch(0.269 0 0); /* Dark gray for subtle elements */
+  --muted-foreground: oklch(0.708 0 0); /* Medium light gray text */
+
+  /* === ACCENT COLORS === */
+  --accent: oklch(0.269 0 0); /* Dark gray accent */
+  --accent-foreground: oklch(0.985 0 0); /* Light text on accent */
+
+  /* === STATUS COLORS === */
+  --destructive: oklch(0.704 0.191 22.216); /* Lighter red for dark mode */
+
+  /* === INTERFACE ELEMENTS === */
+  --border: oklch(1 0 0 / 10%); /* Semi-transparent borders */
+  --input: oklch(1 0 0 / 15%); /* Semi-transparent inputs */
+  --ring: oklch(0.556 0 0); /* Medium gray focus rings */
+
+  /* === CHART COLORS (Dark Mode Adjusted) === */
+  --chart-1: oklch(0.488 0.243 264.376); /* Purple-blue */
+  --chart-2: oklch(0.696 0.17 162.48); /* Teal */
+  --chart-3: oklch(0.769 0.188 70.08); /* Yellow-green */
+  --chart-4: oklch(0.627 0.265 303.9); /* Pink-purple */
+  --chart-5: oklch(0.645 0.246 16.439); /* Orange-red */
+
+  /* === SIDEBAR COLORS (Dark Mode) === */
+  --sidebar: oklch(0.205 0 0); /* Dark sidebar background */
+  --sidebar-foreground: oklch(0.985 0 0); /* Light sidebar text */
+  --sidebar-primary: oklch(0.488 0.243 264.376); /* Blue sidebar primary */
+  --sidebar-primary-foreground: oklch(
+    0.985 0 0
+  ); /* Light text on sidebar primary */
+  --sidebar-accent: oklch(0.269 0 0); /* Dark sidebar accent */
+  --sidebar-accent-foreground: oklch(
+    0.985 0 0
+  ); /* Light text on sidebar accent */
+  --sidebar-border: oklch(1 0 0 / 10%); /* Semi-transparent sidebar borders */
+  --sidebar-ring: oklch(0.556 0 0); /* Medium gray sidebar focus rings */
+}
+
+/* === BASE LAYER STYLES === */
+/* 
+ * Base layer applies fundamental styles to all elements
+ * These styles have the lowest specificity and can be overridden
+ */
+@layer base {
+  /* === UNIVERSAL STYLES === */
+  * {
+    /* Apply border and ring colors to all elements */
+    @apply border-border outline-ring/50;
+  }
+
+  /* .customContainer {
+    @apply container mx-auto ;
+  } */
+
+  /* === CUSTOM UTILITY CLASSES === */
+  .customContainer {
+    max-width: 1600px;
+  }
+
+  /* === BODY STYLES === */
+  body {
+    /* Apply theme background and text colors */
+    @apply bg-background text-foreground;
+    /* Ensure smooth transitions and proper font rendering */
+    transition-property: color, background-color, border-color;
+    transition-duration: 200ms;
+    transition-timing-function: ease-in-out;
+  }
+}
+
+@layer utilities {
+  /* === PRIMARY === */
+  .text-primary {
+    color: var(--primary);
+  }
+  .bg-primary {
+    background-color: var(--primary);
+  }
+  .bg-primary-dark {
+    background-color: var(--primaryDark);
+  }
+  .border-primary {
+    border-color: var(--primary);
+  }
+
+  /* === SECONDARY === */
+  .text-secondary {
+    color: var(--secondary);
+  }
+  .bg-secondary {
+    background-color: var(--secondary);
+  }
+  .border-secondary {
+    border-color: var(--secondary);
+  }
+
+  /* === MUTED / GRAY === */
+  .text-muted {
+    color: var(--muted-foreground);
+  }
+  .bg-muted {
+    background-color: var(--muted);
+  }
+  .border-muted {
+    border-color: var(--muted);
+  }
+
+  /* === ACCENT === */
+  .text-accent {
+    color: var(--accent-foreground);
+  }
+  .bg-accent {
+    background-color: var(--accent);
+  }
+  .border-accent {
+    border-color: var(--accent);
+  }
+
+  /* === STATUS COLORS === */
+  .text-danger {
+    color: var(--destructive);
+  }
+  .bg-danger {
+    background-color: var(--destructive);
+  }
+  .border-danger {
+    border-color: var(--destructive);
+  }
+
+  .customOrange {
+    color: #20f818;
+  }
+
+  /* === BORDER RADIUS === */
+  .rounded-main {
+    border-radius: var(--radius);
+  }
+}
